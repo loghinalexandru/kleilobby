@@ -19,7 +19,12 @@ namespace KleiLobby
             services.AddHttpContextAccessor();
             services.AddHttpClient();
             services.AddMvc();
-
+            services.AddCors(def => def.AddDefaultPolicy(p =>
+             {
+                 p.AllowAnyHeader();
+                 p.AllowAnyMethod();
+                 p.AllowAnyOrigin();
+             }));
             services.AddScoped<IDontStarveTogetherService, DontStarveTogetherService>();
         }
 
