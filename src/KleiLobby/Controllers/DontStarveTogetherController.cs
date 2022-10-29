@@ -15,7 +15,7 @@ namespace KleiLobby.Controllers
         }
 
         [HttpGet("all")]
-        public async  Task<IActionResult> GetAll([FromQuery] string region, [FromQuery] string token)
+        public async Task<IActionResult> GetAll([FromQuery] string region, [FromQuery] string token)
         {
             var result = await _service.GetAllAsync();
 
@@ -23,17 +23,29 @@ namespace KleiLobby.Controllers
         }
 
         [HttpGet("{kleiId}/{serverName}")]
-        [HttpHead("{kleiId}/{serverName}")]
-        public async Task<IActionResult> GetByHostAndServer([FromRoute]string kleiId, [FromRoute]string serverName, [FromQuery] string region, [FromQuery] string token)
+        public async Task<IActionResult> GetByHostAndServer([FromRoute] string kleiId, [FromRoute] string serverName, [FromQuery] string region, [FromQuery] string token)
         {
             var result = await _service.GetByHostAndNameAsync(kleiId, serverName);
 
-            if (!result.Any())
+            if (result == null)
             {
                 return NotFound();
             }
 
             return Ok(result);
+        }
+
+        [HttpHead("{kleiId}/{serverName}")]
+        public async Task<IActionResult> HeadByHostAndServer([FromRoute] string kleiId, [FromRoute] string serverName, [FromQuery] string region, [FromQuery] string token)
+        {
+            var result = await _service.GetByHostAndNameAsync(kleiId, serverName);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok();
         }
 
         [HttpGet("{rowId}")]

@@ -1,3 +1,4 @@
+using KleiLobby.Middleware;
 using KleiLobby.Services.DontStarveTogether;
 using KleiLobby.Services.DontStarveTogether.Interfaces;
 
@@ -19,13 +20,19 @@ namespace KleiLobby
             services.AddHttpContextAccessor();
             services.AddHttpClient();
             services.AddMvc();
+            services.AddSingleton<GlobalExceptionHandlingMiddleware>();
+
             services.AddCors(def => def.AddDefaultPolicy(p =>
              {
                  p.AllowAnyHeader();
                  p.AllowAnyMethod();
                  p.AllowAnyOrigin();
              }));
+
             services.AddScoped<IDontStarveTogetherService, DontStarveTogetherService>();
+            services.AddScoped<IDontStarveTogetherRepository, DontStarveTogetherRepository>();
+            services.AddSingleton<IContextResolver, ContextResolver>();
+            services.AddSingleton<IDontStarveTogetherCache, DontStarveTogetherCache>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -36,6 +43,7 @@ namespace KleiLobby
             }
 
             app.UseRouting();
+            app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
             app.UseCors();
             app.UseEndpoints(x =>
             {
