@@ -9,6 +9,7 @@ namespace KleiLobby.Services.DontStarveTogether
     {
         private readonly IMemoryCache _cache;
         private readonly TimeSpan _cacheExpirationTime = TimeSpan.FromMinutes(5);
+        private readonly MemoryCacheEntryOptions _entryOptions = new MemoryCacheEntryOptions { Priority = CacheItemPriority.NeverRemove };
 
         public DontStarveTogetherCache(IMemoryCache cache)
         {
@@ -48,13 +49,18 @@ namespace KleiLobby.Services.DontStarveTogether
         {
             foreach (var entry in request.Lobby?.Where(x => !string.IsNullOrWhiteSpace(x.HostKU) && !string.IsNullOrWhiteSpace(x.Name)) ?? Enumerable.Empty<ServerInfo>())
             {
-                _cache.Set(GetServerRowKey(regionKey, entry.HostKU!, entry.Name!), entry.RowId, _cacheExpirationTime);
+                _cache.Set(GetServerRowKey(regionKey, entry.HostKU!, entry.Name!), entry.RowId, _entryOptions);
             }
         }
 
         private string GetServerRowKey(LobbyListEnum regionKey, string host, string serverName)
         {
             return string.Join(":", Enum.GetName(regionKey), host, serverName);
+        }
+
+        public void RemoveKey(string key)
+        {
+            _cache.Remove(key);
         }
     }
 }

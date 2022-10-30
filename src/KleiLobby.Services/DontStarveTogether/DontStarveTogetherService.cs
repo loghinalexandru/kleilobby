@@ -45,7 +45,16 @@ namespace KleiLobby.Services.DontStarveTogether
 
             if (!string.IsNullOrWhiteSpace(serverRowId))
             {
-                return await _repository.GetByRowId(serverRowId);
+                var serverByRowId = await _repository.GetByRowId(serverRowId);
+
+                if (serverByRowId == null)
+                {
+                    _cache.RemoveKey(serverRowId);
+                }
+                else
+                {
+                    return serverByRowId;
+                }
             }
 
             var result = await _repository.GetAll();
