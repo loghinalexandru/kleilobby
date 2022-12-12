@@ -20,6 +20,7 @@ namespace KleiLobby
             services.AddHttpContextAccessor();
             services.AddHttpClient();
             services.AddMvc();
+            services.AddSwaggerGen();
             services.AddSingleton<GlobalExceptionHandlingMiddleware>();
 
             services.AddCors(def => def.AddDefaultPolicy(p =>
@@ -45,6 +46,10 @@ namespace KleiLobby
             app.UseRouting();
             app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
             app.UseCors();
+
+            app.UseSwagger();
+            app.UseSwaggerUI();
+
             app.UseEndpoints(x =>
             {
                 x.MapControllers();

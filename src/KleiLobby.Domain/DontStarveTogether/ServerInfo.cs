@@ -18,6 +18,8 @@ namespace KleiLobby.Domain.DontStarveTogether
         public string? Name { get; init; }
         [JsonProperty("password")]
         public bool? Password { get; init; }
+        [JsonProperty("mods")]
+        public bool? Mods { get; init; }
         [JsonProperty("connected")]
         public short? Connected { get; init; }
         [JsonProperty("season")]
