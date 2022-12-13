@@ -7,10 +7,8 @@ namespace KleiLobby.Services.DontStarveTogether.Interfaces
     {
         public string GetServerRowId(LobbyListEnum regionKey, string host, string serverName);
 
-        public void RemoveKey(string key);
+        public RequestWrapper GetRequestWrapper(LobbyListEnum regionKey);
 
-        public Task<RequestWrapper> GetRequestWrapper(LobbyListEnum regionKey);
-
-        public Task<bool> SetRequestWrapper(LobbyListEnum regionKey, RequestWrapper request);
+        public bool SetRequestWrapper(LobbyListEnum regionKey, RequestWrapper request);
     }
 }

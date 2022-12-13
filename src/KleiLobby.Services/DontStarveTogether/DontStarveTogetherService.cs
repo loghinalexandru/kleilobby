@@ -23,16 +23,13 @@ namespace KleiLobby.Services.DontStarveTogether
         {
             var regionKey = _contextResolver.GetLobbyRegion();
 
-            var result = await _cache.GetRequestWrapper(regionKey);
+            var result = _cache.GetRequestWrapper(regionKey);
 
-            if (result == null)
-            {
-                result = await _repository.GetAll();
-            }
+            result ??= await _repository.GetAll();
 
             if (result != null && (result.Lobby?.Any() ?? false))
             {
-                await _cache.SetRequestWrapper(regionKey, result);
+                _cache.SetRequestWrapper(regionKey, result);
             }
 
             return result?.Lobby ?? Enumerable.Empty<ServerInfo>();
@@ -47,11 +44,7 @@ namespace KleiLobby.Services.DontStarveTogether
             {
                 var serverByRowId = await _repository.GetByRowId(serverRowId);
 
-                if (serverByRowId == null)
-                {
-                    _cache.RemoveKey(serverRowId);
-                }
-                else
+                if (serverByRowId != null)
                 {
                     return serverByRowId;
                 }
@@ -61,7 +54,7 @@ namespace KleiLobby.Services.DontStarveTogether
 
             if (result != null && (result.Lobby?.Any() ?? false))
             {
-                await _cache.SetRequestWrapper(regionKey, result);
+                _cache.SetRequestWrapper(regionKey, result);
             }
 
             return
