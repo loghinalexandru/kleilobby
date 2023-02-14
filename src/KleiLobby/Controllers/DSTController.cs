@@ -2,6 +2,7 @@
 using KleiLobby.Services.DontStarveTogether.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace KleiLobby.Controllers
 {
@@ -20,7 +21,7 @@ namespace KleiLobby.Controllers
         [Produces("application/json")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(IEnumerable<ServerInfo>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetAll([FromQuery] string region, [FromQuery] string token)
+        public async Task<IActionResult> GetAll([FromQuery] string region)
         {
             var result = await _service.GetAllAsync();
 

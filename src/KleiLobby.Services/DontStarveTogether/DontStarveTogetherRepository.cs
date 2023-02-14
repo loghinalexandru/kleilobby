@@ -1,6 +1,8 @@
 ﻿using KleiLobby.Domain.DontStarveTogether;
+using KleiLobby.Services.DontStarveTogether.Http;
 using KleiLobby.Services.DontStarveTogether.Interfaces;
 using Newtonsoft.Json;
+using System.Net;
 using System.Net.Http.Headers;
 
 namespace KleiLobby.Services.DontStarveTogether
@@ -20,13 +22,11 @@ namespace KleiLobby.Services.DontStarveTogether
 
         public async Task<RequestWrapper?> GetAll()
         {
-            var client = _httpClientFactory.CreateClient(nameof(DontStarveTogetherService));
+            var client = _httpClientFactory.CreateClient(HttpClients.GZip);
             var region = _contextResolver.GetRawRegion();
             var token = _contextResolver.GetToken();
 
-            var request = new HttpRequestMessage(HttpMethod.Post, $@"https://lobby-{region}.klei.com/lobby/read");
-            request.Content = new StringContent("{\"__gameId\": \"DST\",\"__token\": \"token_to_replace\"}".Replace("token_to_replace", token));
-            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+            var request = new HttpRequestMessage(HttpMethod.Get, $@"https://lobby-v2-cdn.klei.com/{region}-Steam.json.gz");
 
             var response = await client.SendAsync(request);
 
@@ -40,13 +40,13 @@ namespace KleiLobby.Services.DontStarveTogether
 
         public async Task<ServerInfo?> GetByRowId(string rowId)
         {
-            var client = _httpClientFactory.CreateClient(nameof(DontStarveTogetherService));
+            var client = _httpClientFactory.CreateClient(HttpClients.Default);
             var region = _contextResolver.GetRawRegion();
             var token = _contextResolver.GetToken();
 
-            var request = new HttpRequestMessage(HttpMethod.Post, $@"https://lobby-{region}.klei.com/lobby/read");
+            var request = new HttpRequestMessage(HttpMethod.Post, $@"https://lobby-v2-{region}.klei.com/lobby/read");
             request.Content = new
-                StringContent("{\"__gameId\": \"DST\",\"__token\": \"token_to_replace\", \"query\":{\"__rowId\":\"rowId_to_replace\"}}}"
+                StringContent("{\"__gameId\": \"DontStarveTogether\",\"__token\": \"token_to_replace\", \"query\":{\"__rowId\":\"rowId_to_replace\"}}}"
                 .Replace("token_to_replace", token)
                 .Replace("rowId_to_replace", rowId));
 

@@ -19,12 +19,14 @@ namespace KleiLobby.Services.DontStarveTogether
 
             switch (region)
             {
-                case "prod":
-                    return LobbyListEnum.ProductionLobby;
-                case "sing":
-                    return LobbyListEnum.SingaporeLobby;
-                case "us":
-                    return LobbyListEnum.UsLobby;
+                case "ap-east-1":
+                    return LobbyListEnum.AsianPacificEastLobby;
+                case "ap-southeast-1":
+                    return LobbyListEnum.AsianPacificSouthEastLobby;
+                case "us-east-1":
+                    return LobbyListEnum.UsEastLobby;
+                case "eu-central-1":
+                    return LobbyListEnum.EuCentralLobby;
                 default:
                     return LobbyListEnum.Unknown;
             }

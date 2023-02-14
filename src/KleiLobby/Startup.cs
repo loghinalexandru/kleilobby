@@ -1,3 +1,4 @@
+using KleiLobby.Extensions;
 using KleiLobby.Middleware;
 using KleiLobby.Services.DontStarveTogether;
 using KleiLobby.Services.DontStarveTogether.Interfaces;
@@ -22,6 +23,7 @@ namespace KleiLobby
             services.AddMvc();
             services.AddSwaggerGen();
             services.AddSingleton<GlobalExceptionHandlingMiddleware>();
+            services.AddNamedHttpClients();
 
             services.AddCors(def => def.AddDefaultPolicy(p =>
              {

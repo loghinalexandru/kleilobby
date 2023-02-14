@@ -3,8 +3,9 @@
     public enum LobbyListEnum
     {
         Unknown,
-        ProductionLobby,
-        UsLobby,
-        SingaporeLobby
+        AsianPacificSouthEastLobby,
+        AsianPacificEastLobby,
+        EuCentralLobby,
+        UsEastLobby
     }
 }

@@ -8,8 +8,6 @@ namespace KleiLobby.Domain.DontStarveTogether
 
         [JsonProperty("__addr")]
         public string? Address { get; init; }
-        [JsonProperty("__lastping")]
-        public long LastPing { get; init; }
         [JsonProperty("__rowId")]
         public string? RowId { get; init; }
         [JsonProperty("host")]
