@@ -26,6 +26,11 @@ func (h *DontStarveTogether) All(writer http.ResponseWriter, request *http.Reque
 	writer.WriteHeader(http.StatusOK)
 }
 
+func (h *DontStarveTogether) ServerName(writer http.ResponseWriter, request *http.Request) {
+	fmt.Println(request.URL.Path)
+	writer.WriteHeader(http.StatusOK)
+}
+
 func (h *DontStarveTogether) RowId(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
 	fmt.Println(request.URL.Path)

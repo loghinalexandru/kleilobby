@@ -30,6 +30,7 @@ type serverData struct {
 	daysLeftInSeason   int
 }
 
+// TODO: maybe skip this and use object?
 func (s *ServerInfo) NewServerData() *serverData {
 	day, _ := strconv.Atoi(dayMatch.FindStringSubmatch(s.RawServerData)[1])
 	daysLapsedInSeason, _ := strconv.Atoi(daysLapsedInSeason.FindStringSubmatch(s.RawServerData)[1])
