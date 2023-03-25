@@ -1,4 +1,4 @@
-package dst
+package handlers
 
 import (
 	"encoding/json"
@@ -11,27 +11,24 @@ import (
 	"github.com/loghinalexandru/klei-lobby/models"
 )
 
-type Handler struct {
+type DontStarveTogether struct {
 	logger *log.Logger
 }
 
-func NewHandler(l *log.Logger) *Handler {
-	return &Handler{
+func NewDontStarveTogether(l *log.Logger) *DontStarveTogether {
+	return &DontStarveTogether{
 		logger: l,
 	}
 }
 
-func (h *Handler) SetupRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/all", h.All)
-	mux.HandleFunc("/rowid", h.RowId)
-}
-
-func (h *Handler) All(writer http.ResponseWriter, request *http.Request) {
+func (h *DontStarveTogether) All(writer http.ResponseWriter, request *http.Request) {
+	fmt.Println(request.URL.Path)
 	writer.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) RowId(writer http.ResponseWriter, request *http.Request) {
+func (h *DontStarveTogether) RowId(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
+	fmt.Println(request.URL.Path)
 
 	payload := fmt.Sprintf("{\"__gameId\": \"DontStarveTogether\",\"__token\": \"%v\", \"query\":{\"__rowId\":\"%v\"}}}", request.URL.Query().Get("token"), request.URL.Path)
 
