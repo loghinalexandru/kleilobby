@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/loghinalexandru/klei-lobby/handlers"
+	"github.com/loghinalexandru/klei-lobby/dst"
 	"github.com/loghinalexandru/klei-lobby/router"
 	"github.com/loghinalexandru/klei-lobby/server"
 )
@@ -13,7 +13,7 @@ import (
 func main() {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 	mux := http.NewServeMux()
-	dstHandler := handlers.NewDontStarveTogether(logger)
+	dstHandler := dst.NewHandler(logger)
 
 	router := router.New(logger, dstHandler)
 	router.SetupRouter(mux)

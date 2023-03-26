@@ -1,20 +1,19 @@
 package router
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"regexp"
 
-	"github.com/loghinalexandru/klei-lobby/handlers"
+	"github.com/loghinalexandru/klei-lobby/dst"
 )
 
 type Router struct {
 	log *log.Logger
-	dst *handlers.DontStarveTogether
+	dst *dst.Handler
 }
 
-func New(logger *log.Logger, dst *handlers.DontStarveTogether) *Router {
+func New(logger *log.Logger, dst *dst.Handler) *Router {
 	return &Router{
 		log: logger,
 		dst: dst,
@@ -25,21 +24,19 @@ func (r *Router) SetupRouter(mux *http.ServeMux) {
 	mux.HandleFunc("/", r.switchRouter)
 }
 
-// TODO: parse needed values from URI
+// TODO: add tracing & route match logging
 func (r *Router) switchRouter(writer http.ResponseWriter, request *http.Request) {
-	all := regexp.MustCompile("^/api/v1/dst/all$")
+	all := regexp.MustCompile("^/api/v1/dst$")
 	rowID := regexp.MustCompile("^/api/v1/dst/([a-zA-Z0-9]+)$")
-	serverName := regexp.MustCompile("^/api/v1/dst/(KU_[a-zA-Z0-9]+)/([a-zA-Z0-9]+)$")
+	serverName := regexp.MustCompile("^/api/v1/dst/(KU_[_+a-zA-Z0-9]+)/([a-zA-Z0-9]+)$")
 
 	switch {
 	case all.MatchString(request.URL.Path):
-		fmt.Println(serverName.FindStringSubmatch(request.URL.Path))
 		r.dst.All(writer, request)
 	case rowID.MatchString(request.URL.Path):
-		fmt.Println(serverName.FindStringSubmatch(request.URL.Path))
-		r.dst.RowId(writer, request)
+		pathRowID := rowID.FindStringSubmatch(request.URL.Path)[1]
+		r.dst.RowID(writer, request, pathRowID)
 	case serverName.MatchString(request.URL.Path):
-		fmt.Println(serverName.FindStringSubmatch(request.URL.Path))
 		r.dst.ServerName(writer, request)
 	default:
 		writer.WriteHeader(http.StatusNotFound)
