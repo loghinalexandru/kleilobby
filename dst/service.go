@@ -17,8 +17,33 @@ type service struct {
 	logger *log.Logger
 }
 
-func (s service) GetByServerName(token string, region string, serverName string, hostKU string) (models.ViewModel, error) {
-	return models.ViewModel{}, nil
+func (s service) GetByServerNameAndHost(token string, region string, serverName string, hostKU string) (models.ViewModel, error) {
+	kleiRequest, err := http.NewRequest("GET", fmt.Sprintf("https://lobby-v2-cdn.klei.com/%v-Steam.json.gz", region), nil)
+
+	if err != nil {
+		s.logger.Println(err)
+		return models.ViewModel{}, err
+	}
+
+	result, err := http.DefaultClient.Do(kleiRequest)
+
+	if err != nil {
+		s.logger.Println(err)
+		return models.ViewModel{}, err
+	}
+
+	content, _ := io.ReadAll(result.Body)
+	model := &models.RequestWrapper{}
+	json.Unmarshal(content, model)
+
+	for _, server := range model.Lobby {
+		if strings.Contains(server.Name, serverName) && server.HostKU == hostKU {
+			// TODO: maybe rethink this?
+			return s.GetByRowID(server.RowID, token, region)
+		}
+	}
+
+	return models.ViewModel{}, errors.New("server not found")
 }
 
 func (s service) GetAll(token string, region string) ([]models.ViewModel, error) {
