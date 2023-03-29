@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/loghinalexandru/klei-lobby/caching"
+	"github.com/loghinalexandru/klei-lobby/dst/models"
 )
 
 type Handler struct {
@@ -12,10 +15,13 @@ type Handler struct {
 }
 
 func NewHandler(l *log.Logger) *Handler {
+	cache := caching.New[models.ViewModel]()
+
 	return &Handler{
 		logger: l,
 		svc: service{
 			logger: l,
+			cache:  cache,
 		},
 	}
 }

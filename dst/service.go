@@ -8,16 +8,25 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
+	"github.com/loghinalexandru/klei-lobby/caching"
 	"github.com/loghinalexandru/klei-lobby/dst/models"
 )
 
-// TODO: add inmemory caching
 type service struct {
 	logger *log.Logger
+	cache  *caching.Cache[models.ViewModel]
 }
 
 func (s service) GetByServerNameAndHost(token string, region string, serverName string, hostKU string) (models.ViewModel, error) {
+	key := fmt.Sprintf("%v_%v_%v", region, serverName, hostKU)
+	inCache := s.cache.Contains(key) && time.Now().UTC().Before(s.cache.GetTimestamp(key).Add(1*time.Minute))
+
+	if inCache {
+		return s.cache.Get(key), nil
+	}
+
 	kleiRequest, err := http.NewRequest("GET", fmt.Sprintf("https://lobby-v2-cdn.klei.com/%v-Steam.json.gz", region), nil)
 
 	if err != nil {
@@ -38,8 +47,14 @@ func (s service) GetByServerNameAndHost(token string, region string, serverName 
 
 	for _, server := range model.Lobby {
 		if strings.Contains(server.Name, serverName) && server.HostKU == hostKU {
-			// TODO: maybe rethink this?
-			return s.GetByRowID(server.RowID, token, region)
+			model, err := s.GetByRowID(server.RowID, token, region)
+
+			if err != nil {
+				return models.ViewModel{}, err
+			}
+
+			s.cache.Add(key, model)
+			return model, nil
 		}
 	}
 
