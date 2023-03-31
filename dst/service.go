@@ -8,11 +8,12 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/loghinalexandru/klei-lobby/caching"
 	"github.com/loghinalexandru/klei-lobby/dst/models"
 )
+
+var ErrNotFound = errors.New("resource not found")
 
 type service struct {
 	logger *log.Logger
@@ -21,9 +22,8 @@ type service struct {
 
 func (s service) GetByServerNameAndHost(token string, region string, serverName string, hostKU string) (models.ViewModel, error) {
 	key := fmt.Sprintf("%v_%v_%v", region, serverName, hostKU)
-	inCache := s.cache.Contains(key) && time.Now().UTC().Before(s.cache.GetTimestamp(key).Add(1*time.Minute))
 
-	if inCache {
+	if s.cache.Contains(key) {
 		return s.cache.Get(key), nil
 	}
 
@@ -58,7 +58,7 @@ func (s service) GetByServerNameAndHost(token string, region string, serverName 
 		}
 	}
 
-	return models.ViewModel{}, errors.New("server not found")
+	return models.ViewModel{}, ErrNotFound
 }
 
 func (s service) GetAll(token string, region string) ([]models.ViewModel, error) {
@@ -121,7 +121,7 @@ func (s service) GetByRowID(pathRowID string, token string, region string) (mode
 	json.Unmarshal(content, model)
 
 	if model == nil || len(model.Lobby) < 1 {
-		return models.ViewModel{}, errors.New("missing lobby model")
+		return models.ViewModel{}, ErrNotFound
 	}
 
 	data, err := MapToViewModel(model.Lobby[0])
