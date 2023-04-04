@@ -11,18 +11,21 @@ import (
 	"github.com/loghinalexandru/klei-lobby/dst/models"
 )
 
+const cacheTTL = 5 * time.Minute
+
 type Handler struct {
 	logger *log.Logger
 	svc    service
 }
 
 func NewHandler(log *log.Logger) *Handler {
-	cache := caching.New[models.ViewModel](1 * time.Minute)
+	cache := caching.New[models.ViewModel](cacheTTL)
 
 	return &Handler{
 		logger: log,
 		svc: service{
 			logger: log,
+			client: http.DefaultClient,
 			cache:  cache,
 		},
 	}
@@ -34,7 +37,7 @@ func (h *Handler) All(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	result, err := h.svc.GetAll(request.URL.Query().Get("token"), request.URL.Query().Get("region"))
+	result, err := h.svc.GetAll(request.URL.Query().Get("region"))
 
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -87,7 +90,7 @@ func (h *Handler) RowID(writer http.ResponseWriter, request *http.Request, pathR
 		return
 	}
 
-	result, err := h.svc.GetByRowID(pathRowID, request.URL.Query().Get("token"), request.URL.Query().Get("region"))
+	result, err := h.svc.GetByRowID(request.URL.Query().Get("token"), request.URL.Query().Get("region"), pathRowID)
 
 	if errors.Is(err, ErrNotFound) {
 		writer.WriteHeader(http.StatusNotFound)

@@ -13,9 +13,17 @@ import (
 	"github.com/loghinalexandru/klei-lobby/dst/models"
 )
 
-var ErrNotFound = errors.New("resource not found")
+var (
+	ErrNotFound = errors.New("resource not found")
+)
+
+const (
+	lobbyURL     = "https://lobby-v2-cdn.klei.com/%v-Steam.json.gz"
+	lobbyReadURL = "https://lobby-v2-%v.klei.com/lobby/read"
+)
 
 type service struct {
+	client *http.Client
 	logger *log.Logger
 	cache  *caching.Cache[models.ViewModel]
 }
@@ -27,14 +35,14 @@ func (s service) GetByServerNameAndHost(token string, region string, serverName 
 		return s.cache.Get(key), nil
 	}
 
-	kleiRequest, err := http.NewRequest("GET", fmt.Sprintf("https://lobby-v2-cdn.klei.com/%v-Steam.json.gz", region), nil)
+	request, err := http.NewRequest("GET", fmt.Sprintf(lobbyURL, region), nil)
 
 	if err != nil {
 		s.logger.Println(err)
 		return models.ViewModel{}, err
 	}
 
-	result, err := http.DefaultClient.Do(kleiRequest)
+	result, err := s.client.Do(request)
 
 	if err != nil {
 		s.logger.Println(err)
@@ -47,7 +55,7 @@ func (s service) GetByServerNameAndHost(token string, region string, serverName 
 
 	for _, server := range model.Lobby {
 		if strings.Contains(server.Name, serverName) && server.HostKU == hostKU {
-			model, err := s.GetByRowID(server.RowID, token, region)
+			model, err := s.GetByRowID(token, region, server.RowID)
 
 			if err != nil {
 				return models.ViewModel{}, err
@@ -61,15 +69,15 @@ func (s service) GetByServerNameAndHost(token string, region string, serverName 
 	return models.ViewModel{}, ErrNotFound
 }
 
-func (s service) GetAll(token string, region string) ([]models.ViewModel, error) {
-	kleiRequest, err := http.NewRequest("GET", fmt.Sprintf("https://lobby-v2-cdn.klei.com/%v-Steam.json.gz", region), nil)
+func (s service) GetAll(region string) ([]models.ViewModel, error) {
+	request, err := http.NewRequest("GET", fmt.Sprintf(lobbyURL, region), nil)
 
 	if err != nil {
 		s.logger.Println(err)
 		return nil, err
 	}
 
-	result, err := http.DefaultClient.Do(kleiRequest)
+	result, err := s.client.Do(request)
 
 	if err != nil {
 		s.logger.Println(err)
@@ -83,23 +91,23 @@ func (s service) GetAll(token string, region string) ([]models.ViewModel, error)
 
 	viewModels := make([]models.ViewModel, len(model.Lobby))
 
-	for idx, entry := range model.Lobby {
+	for i, entry := range model.Lobby {
 		mappedEntry, err := MapToViewModel(entry)
 
 		if err != nil {
 			s.logger.Println(err)
 		}
 
-		viewModels[idx] = mappedEntry
+		viewModels[i] = mappedEntry
 	}
 
 	return viewModels, nil
 }
 
-func (s service) GetByRowID(pathRowID string, token string, region string) (models.ViewModel, error) {
-	kleiRequest, err := http.NewRequest(
+func (s service) GetByRowID(token string, region string, pathRowID string) (models.ViewModel, error) {
+	request, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("https://lobby-v2-%v.klei.com/lobby/read", region),
+		fmt.Sprintf(lobbyReadURL, region),
 		strings.NewReader(fmt.Sprintf("{\"__gameId\": \"DontStarveTogether\",\"__token\": \"%v\", \"query\":{\"__rowId\":\"%v\"}}}", token, pathRowID)))
 
 	if err != nil {
@@ -107,8 +115,8 @@ func (s service) GetByRowID(pathRowID string, token string, region string) (mode
 		return models.ViewModel{}, err
 	}
 
-	kleiRequest.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	result, err := http.DefaultClient.Do(kleiRequest)
+	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	result, err := s.client.Do(request)
 
 	if err != nil {
 		s.logger.Println(err)
