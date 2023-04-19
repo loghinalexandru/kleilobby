@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/loghinalexandru/klei-lobby/caching"
-	"github.com/loghinalexandru/klei-lobby/dst/models"
+	"github.com/loghinalexandru/klei-lobby/dst/model"
 )
 
 const cacheTTL = 5 * time.Minute
@@ -19,7 +19,7 @@ type Handler struct {
 }
 
 func NewHandler(log *log.Logger) *Handler {
-	cache := caching.New[models.ViewModel](cacheTTL)
+	cache := caching.New[model.ViewModel](cacheTTL)
 
 	return &Handler{
 		logger: log,
@@ -55,11 +55,14 @@ func (h *Handler) All(writer http.ResponseWriter, request *http.Request) {
 	writer.Write(data)
 }
 
-func (h *Handler) ServerName(writer http.ResponseWriter, request *http.Request, serverName string, hostKU string) {
+func (h *Handler) ServerName(writer http.ResponseWriter, request *http.Request) {
 	if request.Method != "GET" {
 		writer.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
+
+	serverName := request.Context().Value(model.ServerName).(string)
+	hostKU := request.Context().Value(model.HostKU).(string)
 
 	result, err := h.svc.GetByServerNameAndHost(request.URL.Query().Get("token"), request.URL.Query().Get("region"), serverName, hostKU)
 
@@ -84,13 +87,14 @@ func (h *Handler) ServerName(writer http.ResponseWriter, request *http.Request, 
 	writer.Write(data)
 }
 
-func (h *Handler) RowID(writer http.ResponseWriter, request *http.Request, pathRowID string) {
+func (h *Handler) RowID(writer http.ResponseWriter, request *http.Request) {
 	if request.Method != "GET" {
 		writer.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
-	result, err := h.svc.GetByRowID(request.URL.Query().Get("token"), request.URL.Query().Get("region"), pathRowID)
+	rowID := request.Context().Value(model.RowID).(string)
+	result, err := h.svc.GetByRowID(request.URL.Query().Get("token"), request.URL.Query().Get("region"), rowID)
 
 	if errors.Is(err, ErrNotFound) {
 		writer.WriteHeader(http.StatusNotFound)

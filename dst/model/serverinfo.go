@@ -1,4 +1,4 @@
-package models
+package model
 
 type ServerInfo struct {
 	Address       string `json:"__addr"`

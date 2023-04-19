@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/loghinalexandru/klei-lobby/caching"
-	"github.com/loghinalexandru/klei-lobby/dst/models"
+	"github.com/loghinalexandru/klei-lobby/dst/model"
 )
 
 var (
@@ -25,10 +25,10 @@ const (
 type service struct {
 	client *http.Client
 	logger *log.Logger
-	cache  *caching.Cache[models.ViewModel]
+	cache  *caching.Cache[model.ViewModel]
 }
 
-func (s service) GetByServerNameAndHost(token string, region string, serverName string, hostKU string) (models.ViewModel, error) {
+func (s service) GetByServerNameAndHost(token string, region string, serverName string, hostKU string) (model.ViewModel, error) {
 	key := fmt.Sprintf("%v_%v_%v", region, serverName, hostKU)
 
 	if s.cache.Contains(key) {
@@ -39,37 +39,37 @@ func (s service) GetByServerNameAndHost(token string, region string, serverName 
 
 	if err != nil {
 		s.logger.Println(err)
-		return models.ViewModel{}, err
+		return model.ViewModel{}, err
 	}
 
 	result, err := s.client.Do(request)
 
 	if err != nil {
 		s.logger.Println(err)
-		return models.ViewModel{}, err
+		return model.ViewModel{}, err
 	}
 
 	content, _ := io.ReadAll(result.Body)
-	model := &models.RequestWrapper{}
-	json.Unmarshal(content, model)
+	wrapper := &model.RequestWrapper{}
+	json.Unmarshal(content, wrapper)
 
-	for _, server := range model.Lobby {
+	for _, server := range wrapper.Lobby {
 		if strings.Contains(server.Name, serverName) && server.HostKU == hostKU {
-			model, err := s.GetByRowID(token, region, server.RowID)
+			viewModel, err := s.GetByRowID(token, region, server.RowID)
 
 			if err != nil {
-				return models.ViewModel{}, err
+				return model.ViewModel{}, err
 			}
 
-			s.cache.Add(key, model)
-			return model, nil
+			s.cache.Add(key, viewModel)
+			return viewModel, nil
 		}
 	}
 
-	return models.ViewModel{}, ErrNotFound
+	return model.ViewModel{}, ErrNotFound
 }
 
-func (s service) GetAll(region string) ([]models.ViewModel, error) {
+func (s service) GetAll(region string) ([]model.ViewModel, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf(lobbyURL, region), nil)
 
 	if err != nil {
@@ -86,12 +86,12 @@ func (s service) GetAll(region string) ([]models.ViewModel, error) {
 
 	content, _ := io.ReadAll(result.Body)
 
-	model := &models.RequestWrapper{}
-	json.Unmarshal(content, model)
+	wrapper := &model.RequestWrapper{}
+	json.Unmarshal(content, wrapper)
 
-	viewModels := make([]models.ViewModel, len(model.Lobby))
+	viewModels := make([]model.ViewModel, len(wrapper.Lobby))
 
-	for i, entry := range model.Lobby {
+	for i, entry := range wrapper.Lobby {
 		mappedEntry, err := MapToViewModel(entry)
 
 		if err != nil {
@@ -104,7 +104,7 @@ func (s service) GetAll(region string) ([]models.ViewModel, error) {
 	return viewModels, nil
 }
 
-func (s service) GetByRowID(token string, region string, pathRowID string) (models.ViewModel, error) {
+func (s service) GetByRowID(token string, region string, pathRowID string) (model.ViewModel, error) {
 	request, err := http.NewRequest(
 		"POST",
 		fmt.Sprintf(lobbyReadURL, region),
@@ -112,7 +112,7 @@ func (s service) GetByRowID(token string, region string, pathRowID string) (mode
 
 	if err != nil {
 		s.logger.Println(err)
-		return models.ViewModel{}, err
+		return model.ViewModel{}, err
 	}
 
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -120,22 +120,22 @@ func (s service) GetByRowID(token string, region string, pathRowID string) (mode
 
 	if err != nil {
 		s.logger.Println(err)
-		return models.ViewModel{}, err
+		return model.ViewModel{}, err
 	}
 
 	content, _ := io.ReadAll(result.Body)
 
-	model := &models.RequestWrapper{}
-	json.Unmarshal(content, model)
+	wrapper := &model.RequestWrapper{}
+	json.Unmarshal(content, wrapper)
 
-	if model == nil || len(model.Lobby) < 1 {
-		return models.ViewModel{}, ErrNotFound
+	if wrapper == nil || len(wrapper.Lobby) < 1 {
+		return model.ViewModel{}, ErrNotFound
 	}
 
-	data, err := MapToViewModel(model.Lobby[0])
+	data, err := MapToViewModel(wrapper.Lobby[0])
 
 	if err != nil {
-		return models.ViewModel{}, err
+		return model.ViewModel{}, err
 	}
 
 	return data, nil

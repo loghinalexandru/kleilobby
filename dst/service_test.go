@@ -11,13 +11,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/loghinalexandru/klei-lobby/caching"
-	"github.com/loghinalexandru/klei-lobby/dst/models"
+	"github.com/loghinalexandru/klei-lobby/dst/model"
 )
 
 func TestGetAllWithNoError(t *testing.T) {
 	t.Parallel()
 
-	want := []models.ViewModel{
+	want := []model.ViewModel{
 		{
 			HostKU:     "test_host",
 			ServerName: "test_server",
@@ -71,7 +71,7 @@ func TestGetAllWithHttpError(t *testing.T) {
 func TestGetByRowIDWithNoError(t *testing.T) {
 	t.Parallel()
 
-	want := models.ViewModel{
+	want := model.ViewModel{
 		HostKU:     "test_host",
 		ServerName: "test_server",
 	}
@@ -126,14 +126,14 @@ func TestGetByRowIDWithHttpError(t *testing.T) {
 func TestGetByServerNameAndHostWithNoError(t *testing.T) {
 	t.Parallel()
 
-	want := models.ViewModel{
+	want := model.ViewModel{
 		HostKU:     "test_host",
 		ServerName: "test_server",
 	}
 
 	target := &service{
 		logger: log.Default(),
-		cache:  caching.New[models.ViewModel](time.Hour),
+		cache:  caching.New[model.ViewModel](time.Hour),
 		client: newTestClient(func(req *http.Request) *http.Response {
 
 			if strings.Contains(req.URL.Path, "eu-central-1") || strings.Contains(req.URL.Host, "eu-central-1") {
@@ -164,7 +164,7 @@ func TestGetByServerNameAndHostWithHttpError(t *testing.T) {
 
 	target := &service{
 		logger: log.Default(),
-		cache:  caching.New[models.ViewModel](time.Hour),
+		cache:  caching.New[model.ViewModel](time.Hour),
 		client: newTestClient(func(req *http.Request) *http.Response {
 			return nil
 		}),

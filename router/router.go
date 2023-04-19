@@ -1,46 +1,63 @@
 package router
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"regexp"
 
 	"github.com/loghinalexandru/klei-lobby/dst"
+	"github.com/loghinalexandru/klei-lobby/dst/model"
 )
 
-type Router struct {
-	log *log.Logger
-	dst *dst.Handler
+const (
+	allRoute        = "^/api/v1/dst$"
+	rowIDRoute      = "^/api/v1/dst/(?P<%v>[a-zA-Z0-9]+)$"
+	serverNameRoute = `^/api/v1/dst/(?P<%v>KU_[\-\_\+a-zA-Z0-9]+)/(?P<%v>[a-zA-Z\s0-9]+)$`
+)
+
+type router struct {
+	log    *log.Logger
+	routes map[*regexp.Regexp]http.HandlerFunc
 }
 
-func New(logger *log.Logger, dst *dst.Handler) *Router {
-	return &Router{
-		log: logger,
-		dst: dst,
+func New(logger *log.Logger, dst *dst.Handler) *router {
+	routes := make(map[*regexp.Regexp]http.HandlerFunc)
+
+	routes[regexp.MustCompile(allRoute)] = dst.All
+	routes[regexp.MustCompile(fmt.Sprintf(rowIDRoute, model.RowID))] = dst.RowID
+	routes[regexp.MustCompile(fmt.Sprintf(serverNameRoute, model.HostKU, model.ServerName))] = dst.ServerName
+
+	return &router{
+		log:    logger,
+		routes: routes,
 	}
 }
 
-func (r *Router) SetupRouter(mux *http.ServeMux) {
-	mux.HandleFunc("/", r.switchRouter)
+func (r *router) SetupRouter(mux *http.ServeMux) {
+	mux.HandleFunc("/", r.route)
 }
 
-// TODO: add tracing & route match logging
-func (r *Router) switchRouter(writer http.ResponseWriter, request *http.Request) {
-	all := regexp.MustCompile("^/api/v1/dst$")
-	rowID := regexp.MustCompile("^/api/v1/dst/([a-zA-Z0-9]+)$")
-	serverName := regexp.MustCompile(`^/api/v1/dst/(KU_[\-\_\+a-zA-Z0-9]+)/([a-zA-Z\s0-9]+)$`)
-
-	switch {
-	case all.MatchString(request.URL.Path):
-		r.dst.All(writer, request)
-	case rowID.MatchString(request.URL.Path):
-		pathRowID := rowID.FindStringSubmatch(request.URL.Path)[1]
-		r.dst.RowID(writer, request, pathRowID)
-	case serverName.MatchString(request.URL.Path):
-		pathHostKU := serverName.FindStringSubmatch(request.URL.Path)[1]
-		pathServerName := serverName.FindStringSubmatch(request.URL.Path)[2]
-		r.dst.ServerName(writer, request, pathServerName, pathHostKU)
-	default:
-		writer.WriteHeader(http.StatusNotFound)
+func (r *router) route(writer http.ResponseWriter, request *http.Request) {
+	for route, handler := range r.routes {
+		if route.MatchString(request.URL.Path) {
+			handler(writer, request.WithContext(r.buildContext(request.URL.Path, route)))
+			return
+		}
 	}
+
+	writer.WriteHeader(http.StatusNotFound)
+}
+
+func (r *router) buildContext(path string, route *regexp.Regexp) context.Context {
+	ctx := context.Background()
+	groupMatches := route.FindStringSubmatch(path)[1:]
+	groupKeys := route.SubexpNames()[1:]
+
+	for i, match := range groupMatches {
+		ctx = context.WithValue(ctx, model.PathKey(groupKeys[i]), match)
+	}
+
+	return ctx
 }

@@ -4,10 +4,10 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/loghinalexandru/klei-lobby/dst/models"
+	"github.com/loghinalexandru/klei-lobby/dst/model"
 )
 
-func MapToViewModel(input models.ServerInfo) (models.ViewModel, error) {
+func MapToViewModel(input model.ServerInfo) (model.ViewModel, error) {
 	dayMatch := regexp.MustCompile("day=([0-9]+)")
 	daysElapsedInSeasonMatch := regexp.MustCompile("dayselapsedinseason=([0-9]+)")
 	daysLeftInSeasonMatch := regexp.MustCompile("daysleftinseason=([0-9]+)")
@@ -26,7 +26,7 @@ func MapToViewModel(input models.ServerInfo) (models.ViewModel, error) {
 		daysLeftInSeason, _ = strconv.Atoi(daysLeftInSeasonMatch.FindStringSubmatch(input.RawServerData)[1])
 	}
 
-	data := models.ViewModel{
+	data := model.ViewModel{
 		Address:          input.Address,
 		RowID:            input.RowID,
 		HostKU:           input.HostKU,
