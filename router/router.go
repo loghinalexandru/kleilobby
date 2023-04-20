@@ -23,7 +23,9 @@ func New(logger *log.Logger, opts ...routerOpt) *router {
 	}
 
 	for _, opt := range opts {
-		opt(r)
+		if opt != nil {
+			opt(r)
+		}
 	}
 
 	return r
