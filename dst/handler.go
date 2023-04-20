@@ -61,8 +61,8 @@ func (h *Handler) ServerName(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	serverName := request.Context().Value(model.ServerName).(string)
-	hostKU := request.Context().Value(model.HostKU).(string)
+	serverName := request.Context().Value(ServerName).(string)
+	hostKU := request.Context().Value(HostKU).(string)
 
 	result, err := h.svc.GetByServerNameAndHost(request.URL.Query().Get("token"), request.URL.Query().Get("region"), serverName, hostKU)
 
@@ -93,7 +93,7 @@ func (h *Handler) RowID(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	rowID := request.Context().Value(model.RowID).(string)
+	rowID := request.Context().Value(RowID).(string)
 	result, err := h.svc.GetByRowID(request.URL.Query().Get("token"), request.URL.Query().Get("region"), rowID)
 
 	if errors.Is(err, ErrNotFound) {

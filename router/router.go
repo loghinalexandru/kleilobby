@@ -2,46 +2,46 @@ package router
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"regexp"
-
-	"github.com/loghinalexandru/klei-lobby/dst"
-	"github.com/loghinalexandru/klei-lobby/dst/model"
 )
 
-const (
-	allRoute        = "^/api/v1/dst$"
-	rowIDRoute      = "^/api/v1/dst/(?P<%v>[a-zA-Z0-9]+)$"
-	serverNameRoute = `^/api/v1/dst/(?P<%v>KU_[\-\_\+a-zA-Z0-9]+)/(?P<%v>[a-zA-Z\s0-9]+)$`
-)
+type ContextKey string
+
+type routerOpt func(*router)
 
 type router struct {
 	log    *log.Logger
 	routes map[*regexp.Regexp]http.HandlerFunc
 }
 
-func New(logger *log.Logger, dst *dst.Handler) *router {
-	routes := make(map[*regexp.Regexp]http.HandlerFunc)
-
-	routes[regexp.MustCompile(allRoute)] = dst.All
-	routes[regexp.MustCompile(fmt.Sprintf(rowIDRoute, model.RowID))] = dst.RowID
-	routes[regexp.MustCompile(fmt.Sprintf(serverNameRoute, model.HostKU, model.ServerName))] = dst.ServerName
-
-	return &router{
+func New(logger *log.Logger, opts ...routerOpt) *router {
+	r := &router{
 		log:    logger,
-		routes: routes,
+		routes: make(map[*regexp.Regexp]http.HandlerFunc),
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
+}
+func WithRoute(route *regexp.Regexp, handler http.HandlerFunc) routerOpt {
+	return func(r *router) {
+		r.routes[route] = handler
 	}
 }
 
-func (r *router) SetupRouter(mux *http.ServeMux) {
-	mux.HandleFunc("/", r.route)
+func (r *router) SetupRouter(basePath string, mux *http.ServeMux) {
+	mux.HandleFunc(basePath, r.route)
 }
 
 func (r *router) route(writer http.ResponseWriter, request *http.Request) {
 	for route, handler := range r.routes {
 		if route.MatchString(request.URL.Path) {
+			r.log.Printf("path match: %v", route.String())
 			handler(writer, request.WithContext(r.buildContext(request.URL.Path, route)))
 			return
 		}
@@ -56,7 +56,7 @@ func (r *router) buildContext(path string, route *regexp.Regexp) context.Context
 	groupKeys := route.SubexpNames()[1:]
 
 	for i, match := range groupMatches {
-		ctx = context.WithValue(ctx, model.PathKey(groupKeys[i]), match)
+		ctx = context.WithValue(ctx, ContextKey(groupKeys[i]), match)
 	}
 
 	return ctx
