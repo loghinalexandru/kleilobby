@@ -32,6 +32,7 @@ func (s service) GetByServerNameAndHost(token string, region string, serverName 
 	key := fmt.Sprintf("%v_%v_%v", region, serverName, hostKU)
 
 	if s.cache.Contains(key) {
+		s.logger.Printf("cache hit for key: %v", key)
 		return s.cache.Get(key), nil
 	}
 

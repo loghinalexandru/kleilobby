@@ -28,7 +28,7 @@ func main() {
 		router.WithRoute(regexp.MustCompile(fmt.Sprintf(rowIDRoute, dst.RowID)), dstHandler.RowID),
 		router.WithRoute(regexp.MustCompile(fmt.Sprintf(serverNameRoute, dst.HostKU, dst.ServerName)), dstHandler.ServerName))
 
-	router.SetupRouter("/", mux)
+	router.Setup("/", mux)
 
 	logger.Println("Server starting...")
 	server.New(mux).ListenAndServe()

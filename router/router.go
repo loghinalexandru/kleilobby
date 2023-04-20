@@ -28,13 +28,14 @@ func New(logger *log.Logger, opts ...routerOpt) *router {
 
 	return r
 }
+
 func WithRoute(route *regexp.Regexp, handler http.HandlerFunc) routerOpt {
 	return func(r *router) {
 		r.routes[route] = handler
 	}
 }
 
-func (r *router) SetupRouter(basePath string, mux *http.ServeMux) {
+func (r *router) Setup(basePath string, mux *http.ServeMux) {
 	mux.HandleFunc(basePath, r.route)
 }
 
