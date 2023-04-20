@@ -1,4 +1,4 @@
-module github.com/loghinalexandru/klei-lobby
+module github.com/loghinalexandru/kleilobby
 
 go 1.20
 

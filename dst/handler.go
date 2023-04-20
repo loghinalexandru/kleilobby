@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/loghinalexandru/klei-lobby/caching"
-	"github.com/loghinalexandru/klei-lobby/dst/model"
+	"github.com/loghinalexandru/kleilobby/caching"
+	"github.com/loghinalexandru/kleilobby/dst/model"
 )
 
 const cacheTTL = 5 * time.Minute

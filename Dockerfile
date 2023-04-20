@@ -1,17 +1,20 @@
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS base
+#syntax=docker/dockerfile:latest
+
+FROM golang:1.20-alpine AS build
+
 WORKDIR /app
-EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build
-COPY src/. ./src
-WORKDIR ./src
-RUN dotnet restore "KleiLobby.sln"
-RUN dotnet build "KleiLobby.sln" -c Release -o /app/build
+COPY ../ .
 
-FROM build AS publish
-RUN dotnet publish "KleiLobby.sln" -c Release -o /app/publish
+RUN go mod download
+RUN go build -o / .
 
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "KleiLobby.dll"]
+FROM golang:1.20-alpine
+
+WORKDIR /
+
+COPY --link --from=build /kleilobby /kleilobby
+
+EXPOSE 3002
+
+ENTRYPOINT ["/kleilobby"]

@@ -7,9 +7,9 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/loghinalexandru/klei-lobby/dst"
-	"github.com/loghinalexandru/klei-lobby/router"
-	"github.com/loghinalexandru/klei-lobby/server"
+	"github.com/loghinalexandru/kleilobby/dst"
+	"github.com/loghinalexandru/kleilobby/router"
+	"github.com/loghinalexandru/kleilobby/server"
 )
 
 const (

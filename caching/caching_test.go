@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/loghinalexandru/klei-lobby/caching"
+	"github.com/loghinalexandru/kleilobby/caching"
 )
 
 func TestCacheWhenKeyIsNotPresent(t *testing.T) {

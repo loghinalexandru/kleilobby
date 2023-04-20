@@ -1,6 +1,6 @@
 package dst
 
-import "github.com/loghinalexandru/klei-lobby/router"
+import "github.com/loghinalexandru/kleilobby/router"
 
 const (
 	HostKU     router.ContextKey = "hostKU"

@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/loghinalexandru/klei-lobby/caching"
-	"github.com/loghinalexandru/klei-lobby/dst/model"
+	"github.com/loghinalexandru/kleilobby/caching"
+	"github.com/loghinalexandru/kleilobby/dst/model"
 )
 
 var (

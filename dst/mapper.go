@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/loghinalexandru/klei-lobby/dst/model"
+	"github.com/loghinalexandru/kleilobby/dst/model"
 )
 
 func MapToViewModel(input model.ServerInfo) (model.ViewModel, error) {
