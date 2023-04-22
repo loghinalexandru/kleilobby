@@ -13,26 +13,21 @@ import (
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	keyFirst := regexp.MustCompile("firstTestKey")
-	keySecond := regexp.MustCompile("secondTestKey")
+	patternFirst := regexp.MustCompile("/api/test")
+	patternSecond := regexp.MustCompile("api/test2")
 	handler := func(w http.ResponseWriter, r *http.Request) {}
 
 	router := New(log.Default(),
-		WithRoute(keyFirst, handler),
-		WithRoute(keySecond, handler),
+		WithRoute("GET", patternFirst, handler),
+		WithRoute("POST", patternSecond, handler),
 	)
 
 	if router == nil || len(router.routes) != 2 {
 		t.Fatal("unexpected router returned")
 	}
 
-	if router.routes[keyFirst] == nil {
-		t.Errorf("missing first route entry")
-	}
-
-	if router.routes[keySecond] == nil {
-		t.Errorf("missing second route entry")
-	}
+	containsRoute(router.routes, route{method: "GET", pattern: patternFirst}, t)
+	containsRoute(router.routes, route{method: "POST", pattern: patternSecond}, t)
 }
 
 func TestSetup(t *testing.T) {
@@ -56,7 +51,7 @@ func TestRouteWithNoRoutes(t *testing.T) {
 	spyResponse := httptest.NewRecorder()
 	spyRequest := httptest.NewRequest("GET", "http://localhost:3002", nil)
 
-	router.route(spyResponse, spyRequest)
+	router.handleRequest(spyResponse, spyRequest)
 
 	if spyResponse.Result().StatusCode != http.StatusNotFound {
 		t.Error("unexpected status code")
@@ -67,7 +62,7 @@ func TestRouteWithMatch(t *testing.T) {
 	t.Parallel()
 
 	router := New(log.Default(),
-		WithRoute(regexp.MustCompile("/api/*"), func(w http.ResponseWriter, r *http.Request) {
+		WithRoute("GET", regexp.MustCompile("/api/*"), func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}),
 	)
@@ -75,7 +70,7 @@ func TestRouteWithMatch(t *testing.T) {
 	spyResponse := httptest.NewRecorder()
 	spyRequest := httptest.NewRequest("GET", "http://localhost:3002/api/test", nil)
 
-	router.route(spyResponse, spyRequest)
+	router.handleRequest(spyResponse, spyRequest)
 
 	if spyResponse.Result().StatusCode != http.StatusOK {
 		t.Error("unexpected status code")
@@ -86,7 +81,7 @@ func TestRouteWithNoMatch(t *testing.T) {
 	t.Parallel()
 
 	router := New(log.Default(),
-		WithRoute(regexp.MustCompile("/api/test"), func(w http.ResponseWriter, r *http.Request) {
+		WithRoute("GET", regexp.MustCompile("/api/test"), func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}),
 	)
@@ -94,7 +89,7 @@ func TestRouteWithNoMatch(t *testing.T) {
 	spyResponse := httptest.NewRecorder()
 	spyRequest := httptest.NewRequest("GET", "http://localhost:3002", nil)
 
-	router.route(spyResponse, spyRequest)
+	router.handleRequest(spyResponse, spyRequest)
 
 	if spyResponse.Result().StatusCode != http.StatusNotFound {
 		t.Error("unexpected status code")
@@ -105,13 +100,13 @@ func TestRouteWithMatchAndContext(t *testing.T) {
 	t.Parallel()
 
 	router := New(log.Default(),
-		WithRoute(regexp.MustCompile("/api/(?P<number>[0-9]+)/*"), spyContextKeyHandler("number", "123", t)),
+		WithRoute("GET", regexp.MustCompile("/api/(?P<number>[0-9]+)/*"), spyContextKeyHandler("number", "123", t)),
 	)
 
 	spyResponse := httptest.NewRecorder()
 	spyRequest := httptest.NewRequest("GET", "http://localhost:3002/api/123/test", nil)
 
-	router.route(spyResponse, spyRequest)
+	router.handleRequest(spyResponse, spyRequest)
 
 	if spyResponse.Result().StatusCode != http.StatusOK {
 		t.Error("unexpected status code")
@@ -127,5 +122,21 @@ func spyContextKeyHandler(key string, want string, t *testing.T) http.HandlerFun
 		if got := r.Context().Value(ContextKey(key)); got != want {
 			t.Errorf("context value mismatch (-got +want) %s", cmp.Diff(got, want))
 		}
+	}
+}
+
+func containsRoute(routes map[route]http.HandlerFunc, target route, t *testing.T) {
+	t.Helper()
+
+	var contains bool
+
+	for r := range routes {
+		if r == target {
+			contains = true
+		}
+	}
+
+	if contains == false {
+		t.Errorf("missing expected route: %v %v", target.pattern.String(), target.method)
 	}
 }

@@ -24,9 +24,10 @@ func main() {
 	dstHandler := dst.NewHandler(logger)
 
 	router := router.New(logger,
-		router.WithRoute(regexp.MustCompile(allRoute), dstHandler.All),
-		router.WithRoute(regexp.MustCompile(fmt.Sprintf(rowIDRoute, dst.RowID)), dstHandler.RowID),
-		router.WithRoute(regexp.MustCompile(fmt.Sprintf(serverNameRoute, dst.HostKU, dst.ServerName)), dstHandler.ServerName))
+		router.WithRoute("GET", regexp.MustCompile(allRoute), dstHandler.All),
+		router.WithRoute("GET", regexp.MustCompile(fmt.Sprintf(rowIDRoute, dst.RowID)), dstHandler.RowID),
+		router.WithRoute("GET", regexp.MustCompile(fmt.Sprintf(serverNameRoute, dst.HostKU, dst.ServerName)), dstHandler.ServerName),
+		router.WithRoute("HEAD", regexp.MustCompile(fmt.Sprintf(serverNameRoute, dst.HostKU, dst.ServerName)), dstHandler.Exists))
 
 	router.Setup("/", mux)
 

@@ -5,21 +5,27 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 type ContextKey string
 
 type routerOpt func(*router)
 
+type route struct {
+	pattern *regexp.Regexp
+	method  string
+}
+
 type router struct {
 	log    *log.Logger
-	routes map[*regexp.Regexp]http.HandlerFunc
+	routes map[route]http.HandlerFunc
 }
 
 func New(logger *log.Logger, opts ...routerOpt) *router {
 	r := &router{
 		log:    logger,
-		routes: make(map[*regexp.Regexp]http.HandlerFunc),
+		routes: make(map[route]http.HandlerFunc),
 	}
 
 	for _, opt := range opts {
@@ -31,21 +37,21 @@ func New(logger *log.Logger, opts ...routerOpt) *router {
 	return r
 }
 
-func WithRoute(route *regexp.Regexp, handler http.HandlerFunc) routerOpt {
+func WithRoute(method string, regex *regexp.Regexp, handler http.HandlerFunc) routerOpt {
 	return func(r *router) {
-		r.routes[route] = handler
+		r.routes[route{pattern: regex, method: method}] = handler
 	}
 }
 
 func (r *router) Setup(basePath string, mux *http.ServeMux) {
-	mux.HandleFunc(basePath, r.route)
+	mux.HandleFunc(basePath, r.handleRequest)
 }
 
-func (r *router) route(writer http.ResponseWriter, request *http.Request) {
+func (r *router) handleRequest(writer http.ResponseWriter, request *http.Request) {
 	for route, handler := range r.routes {
-		if route.MatchString(request.URL.Path) {
-			r.log.Printf("path match: %v", route.String())
-			handler(writer, request.WithContext(r.buildContext(request.URL.Path, route)))
+		if route.pattern.MatchString(request.URL.Path) && strings.EqualFold(request.Method, route.method) {
+			r.log.Printf("path match: %v %v", strings.ToUpper(route.method), route.pattern.String())
+			handler(writer, request.WithContext(r.buildContext(request.URL.Path, route.pattern)))
 			return
 		}
 	}
