@@ -1,0 +1,36 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/loghinalexandru/kleilobby
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "0.1.0"
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  hosts:
+    - host: example.path
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  limits:
+    memory: 50Mi
+  requests:
+    cpu: 50m
+    memory: 50Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 80
