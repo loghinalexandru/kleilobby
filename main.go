@@ -31,6 +31,10 @@ func main() {
 
 	router.Setup("/", mux)
 
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	logger.Println("Server starting...")
 	server.New(mux).ListenAndServe()
 }
