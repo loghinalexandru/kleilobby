@@ -35,7 +35,7 @@ func TestSetup(t *testing.T) {
 
 	defer func() { _ = recover() }()
 
-	router := New(log.Default(), nil)
+	router := New(log.Default())
 	mux := http.DefaultServeMux
 
 	router.Setup("/", mux)
@@ -47,7 +47,7 @@ func TestSetup(t *testing.T) {
 func TestRouteWithNoRoutes(t *testing.T) {
 	t.Parallel()
 
-	router := New(log.Default(), nil)
+	router := New(log.Default())
 	spyResponse := httptest.NewRecorder()
 	spyRequest := httptest.NewRequest("GET", "http://localhost:3002", nil)
 
