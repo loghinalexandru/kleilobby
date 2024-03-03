@@ -3,7 +3,7 @@ package dst
 import (
 	"bytes"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 	"testing"
@@ -25,7 +25,7 @@ func TestGetAllWithNoError(t *testing.T) {
 	}
 
 	target := &service{
-		logger: log.Default(),
+		logger: slog.Default(),
 		client: newTestClient(func(req *http.Request) *http.Response {
 
 			if strings.Contains(req.URL.Path, "eu-central-1") {
@@ -55,7 +55,7 @@ func TestGetAllWithHttpError(t *testing.T) {
 	t.Parallel()
 
 	target := &service{
-		logger: log.Default(),
+		logger: slog.Default(),
 		client: newTestClient(func(req *http.Request) *http.Response {
 			return nil
 		}),
@@ -77,7 +77,7 @@ func TestGetByRowIDWithNoError(t *testing.T) {
 	}
 
 	target := &service{
-		logger: log.Default(),
+		logger: slog.Default(),
 		client: newTestClient(func(req *http.Request) *http.Response {
 			payload, _ := io.ReadAll(req.Body)
 
@@ -110,7 +110,7 @@ func TestGetByRowIDWithHttpError(t *testing.T) {
 	t.Parallel()
 
 	target := &service{
-		logger: log.Default(),
+		logger: slog.Default(),
 		client: newTestClient(func(req *http.Request) *http.Response {
 			return nil
 		}),
@@ -132,7 +132,7 @@ func TestGetByServerNameAndHostWithNoError(t *testing.T) {
 	}
 
 	target := &service{
-		logger: log.Default(),
+		logger: slog.Default(),
 		cache:  caching.New[model.ViewModel](time.Hour),
 		client: newTestClient(func(req *http.Request) *http.Response {
 
@@ -163,7 +163,7 @@ func TestGetByServerNameAndHostWithHttpError(t *testing.T) {
 	t.Parallel()
 
 	target := &service{
-		logger: log.Default(),
+		logger: slog.Default(),
 		cache:  caching.New[model.ViewModel](time.Hour),
 		client: newTestClient(func(req *http.Request) *http.Response {
 			return nil
