@@ -51,7 +51,7 @@ func (s service) GetByServerNameAndHost(token string, region string, serverName 
 	}
 
 	content, _ := io.ReadAll(result.Body)
-	wrapper := &model.RequestWrapper{}
+	wrapper := &model.Wrapper{}
 	json.Unmarshal(content, wrapper)
 
 	for _, server := range wrapper.Lobby {
@@ -87,7 +87,7 @@ func (s service) GetAll(region string) ([]model.ViewModel, error) {
 
 	content, _ := io.ReadAll(result.Body)
 
-	wrapper := &model.RequestWrapper{}
+	wrapper := &model.Wrapper{}
 	json.Unmarshal(content, wrapper)
 
 	viewModels := make([]model.ViewModel, len(wrapper.Lobby))
@@ -126,7 +126,7 @@ func (s service) GetByRowID(token string, region string, pathRowID string) (mode
 
 	content, _ := io.ReadAll(result.Body)
 
-	wrapper := &model.RequestWrapper{}
+	wrapper := &model.Wrapper{}
 	json.Unmarshal(content, wrapper)
 
 	if wrapper == nil || len(wrapper.Lobby) < 1 {

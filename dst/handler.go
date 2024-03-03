@@ -31,20 +31,6 @@ func NewHandler(log *log.Logger) *Handler {
 	}
 }
 
-func (h *Handler) Exists(writer http.ResponseWriter, request *http.Request) {
-	serverName := request.Context().Value(ServerName).(string)
-	hostKU := request.Context().Value(HostKU).(string)
-
-	_, err := h.svc.GetByServerNameAndHost(request.URL.Query().Get("token"), request.URL.Query().Get("region"), serverName, hostKU)
-
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	writer.WriteHeader(http.StatusOK)
-}
-
 func (h *Handler) All(writer http.ResponseWriter, request *http.Request) {
 	result, err := h.svc.GetAll(request.URL.Query().Get("region"))
 
@@ -65,8 +51,8 @@ func (h *Handler) All(writer http.ResponseWriter, request *http.Request) {
 }
 
 func (h *Handler) ServerName(writer http.ResponseWriter, request *http.Request) {
-	serverName := request.Context().Value(ServerName).(string)
-	hostKU := request.Context().Value(HostKU).(string)
+	hostKU := request.PathValue("hostKU")
+	serverName := request.PathValue("serverName")
 
 	result, err := h.svc.GetByServerNameAndHost(request.URL.Query().Get("token"), request.URL.Query().Get("region"), serverName, hostKU)
 
@@ -92,7 +78,7 @@ func (h *Handler) ServerName(writer http.ResponseWriter, request *http.Request) 
 }
 
 func (h *Handler) RowID(writer http.ResponseWriter, request *http.Request) {
-	rowID := request.Context().Value(RowID).(string)
+	rowID := request.PathValue("rowID")
 	result, err := h.svc.GetByRowID(request.URL.Query().Get("token"), request.URL.Query().Get("region"), rowID)
 
 	if errors.Is(err, ErrNotFound) {

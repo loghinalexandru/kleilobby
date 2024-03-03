@@ -1,5 +1,5 @@
 package model
 
-type RequestWrapper struct {
+type Wrapper struct {
 	Lobby []ServerInfo `json:"GET"`
 }
