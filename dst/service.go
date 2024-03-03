@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -24,7 +24,7 @@ const (
 
 type service struct {
 	client *http.Client
-	logger *log.Logger
+	logger *slog.Logger
 	cache  *caching.Cache[model.ViewModel]
 }
 
@@ -32,27 +32,27 @@ func (s service) GetByServerNameAndHost(token string, region string, serverName 
 	key := fmt.Sprintf("%v_%v_%v", region, serverName, hostKU)
 
 	if s.cache.Contains(key) {
-		s.logger.Printf("cache hit for key: %v", key)
+		s.logger.Info("cache hit for key", "key", key)
 		return s.cache.Get(key), nil
 	}
 
 	request, err := http.NewRequest("GET", fmt.Sprintf(lobbyURL, region), nil)
 
 	if err != nil {
-		s.logger.Println(err)
+		s.logger.Error("unexpected error encountered", "err", err)
 		return model.ViewModel{}, err
 	}
 
 	result, err := s.client.Do(request)
 
 	if err != nil {
-		s.logger.Println(err)
+		s.logger.Error("unexpected error encountered", "err", err)
 		return model.ViewModel{}, err
 	}
 
 	content, _ := io.ReadAll(result.Body)
 	wrapper := &model.Wrapper{}
-	json.Unmarshal(content, wrapper)
+	_ = json.Unmarshal(content, wrapper)
 
 	for _, server := range wrapper.Lobby {
 		if strings.Contains(server.Name, serverName) && server.HostKU == hostKU {
@@ -74,21 +74,21 @@ func (s service) GetAll(region string) ([]model.ViewModel, error) {
 	request, err := http.NewRequest("GET", fmt.Sprintf(lobbyURL, region), nil)
 
 	if err != nil {
-		s.logger.Println(err)
+		s.logger.Error("unexpected error encountered", "err", err)
 		return nil, err
 	}
 
 	result, err := s.client.Do(request)
 
 	if err != nil {
-		s.logger.Println(err)
+		s.logger.Error("unexpected error encountered", "err", err)
 		return nil, err
 	}
 
 	content, _ := io.ReadAll(result.Body)
 
 	wrapper := &model.Wrapper{}
-	json.Unmarshal(content, wrapper)
+	_ = json.Unmarshal(content, wrapper)
 
 	viewModels := make([]model.ViewModel, len(wrapper.Lobby))
 
@@ -96,7 +96,7 @@ func (s service) GetAll(region string) ([]model.ViewModel, error) {
 		mappedEntry, err := MapToViewModel(entry)
 
 		if err != nil {
-			s.logger.Println(err)
+			s.logger.Error("unexpected error encountered", "err", err)
 		}
 
 		viewModels[i] = mappedEntry
@@ -112,7 +112,7 @@ func (s service) GetByRowID(token string, region string, pathRowID string) (mode
 		strings.NewReader(fmt.Sprintf("{\"__gameId\": \"DontStarveTogether\",\"__token\": \"%v\", \"query\":{\"__rowId\":\"%v\"}}}", token, pathRowID)))
 
 	if err != nil {
-		s.logger.Println(err)
+		s.logger.Error("unexpected error encountered", "err", err)
 		return model.ViewModel{}, err
 	}
 
@@ -120,14 +120,14 @@ func (s service) GetByRowID(token string, region string, pathRowID string) (mode
 	result, err := s.client.Do(request)
 
 	if err != nil {
-		s.logger.Println(err)
+		s.logger.Error("unexpected error encountered", "err", err)
 		return model.ViewModel{}, err
 	}
 
 	content, _ := io.ReadAll(result.Body)
 
 	wrapper := &model.Wrapper{}
-	json.Unmarshal(content, wrapper)
+	_ = json.Unmarshal(content, wrapper)
 
 	if wrapper == nil || len(wrapper.Lobby) < 1 {
 		return model.ViewModel{}, ErrNotFound

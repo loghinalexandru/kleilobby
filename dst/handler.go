@@ -3,7 +3,7 @@ package dst
 import (
 	"encoding/json"
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -14,11 +14,11 @@ import (
 const cacheTTL = 5 * time.Minute
 
 type Handler struct {
-	logger *log.Logger
+	logger *slog.Logger
 	svc    service
 }
 
-func NewHandler(log *log.Logger) *Handler {
+func NewHandler(log *slog.Logger) *Handler {
 	cache := caching.New[model.ViewModel](cacheTTL)
 
 	return &Handler{
@@ -47,7 +47,7 @@ func (h *Handler) All(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	writer.Header().Add("Content-Type", "application/json")
-	writer.Write(data)
+	_, _ = writer.Write(data)
 }
 
 func (h *Handler) ServerName(writer http.ResponseWriter, request *http.Request) {
@@ -74,7 +74,7 @@ func (h *Handler) ServerName(writer http.ResponseWriter, request *http.Request) 
 	}
 
 	writer.Header().Add("Content-Type", "application/json")
-	writer.Write(data)
+	_, _ = writer.Write(data)
 }
 
 func (h *Handler) RowID(writer http.ResponseWriter, request *http.Request) {
@@ -99,5 +99,5 @@ func (h *Handler) RowID(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	writer.Header().Add("Content-Type", "application/json")
-	writer.Write(data)
+	_, _ = writer.Write(data)
 }

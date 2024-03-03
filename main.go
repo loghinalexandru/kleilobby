@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -10,7 +10,12 @@ import (
 )
 
 func main() {
-	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
+	opt := &slog.HandlerOptions{
+		AddSource: true,
+		Level:     slog.LevelInfo,
+	}
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, opt))
+
 	mux := http.NewServeMux()
 	dstHandler := dst.NewHandler(logger)
 
@@ -23,6 +28,6 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	logger.Println("Server starting...")
-	server.New(mux).ListenAndServe()
+	logger.Info("Server starting...")
+	_ = server.New(mux).ListenAndServe()
 }
