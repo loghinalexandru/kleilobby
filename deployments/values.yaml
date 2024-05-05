@@ -22,8 +22,6 @@ ingress:
           pathType: Prefix
 
 resources:
-  limits:
-    memory: 100Mi
   requests:
     cpu: 50m
     memory: 50Mi
